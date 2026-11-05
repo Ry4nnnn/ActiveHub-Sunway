@@ -1,3 +1,4 @@
+import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
@@ -5,13 +6,16 @@ public class RentalTransaction {
 
     private String transactionID;
     private Customer customer;
+    private Booking booking;
+
     private Map<RentalItem, Integer> rentalItems;
 
     // Constructor
-    public RentalTransaction(String transactionID, Customer customer) {
+    public RentalTransaction(String transactionID, Customer customer, Booking booking) {
 
         this.transactionID = transactionID;
         this.customer = customer;
+        this.booking = booking;
 
         rentalItems = new LinkedHashMap<>();
     }
@@ -25,6 +29,10 @@ public class RentalTransaction {
         return customer;
     }
 
+    public Booking getBooking() {
+        return booking;
+    }
+
     // Add rental item
     public void addItem(RentalItem item, int quantity) {
 
@@ -32,12 +40,10 @@ public class RentalTransaction {
             System.out.println("Invalid quantity!");
             return;
         }
-
         rentalItems.put(
                 item,
                 rentalItems.getOrDefault(item, 0) + quantity
         );
-
         System.out.println("Item added successfully!");
     }
 
@@ -54,12 +60,10 @@ public class RentalTransaction {
             System.out.println("Item not found in transaction!");
             return;
         }
-
         if (quantity < 0) {
             System.out.println("Invalid quantity!");
             return;
         }
-
         if (quantity == 0) {
             rentalItems.remove(item);
             System.out.println("Item removed successfully!");
@@ -87,29 +91,38 @@ public class RentalTransaction {
 
     // Calculate 10% service charge
     public double calculateServiceCharge() {
-
         return calculateSubtotal() * 0.10;
     }
 
     // Calculate total
     public double calculateTotal() {
-
         return calculateSubtotal() + calculateServiceCharge();
     }
 
+    // Calculate final payable amount
+    public double calculateFinalPayable(double discount) {
+        return calculateSubtotal() - discount + calculateServiceCharge();
+    }
+
     // Display transaction
-    public void displayTransaction() {
+    public void displayTransaction(PromotionManager promotionManager) {
+
+        Promotion bestPromotion = promotionManager.getBestPromotion(this);
+        double discount = 0;
+
+        if (bestPromotion != null) {
+            discount = bestPromotion.calculateDiscount(this);
+        }
 
         System.out.println("\n========== RENTAL BILL ==========");
-
         System.out.println("Transaction ID: " + transactionID);
         System.out.println("Customer: " + customer.getName());
-
         System.out.println("---------------------------------");
 
         for (Map.Entry<RentalItem, Integer> entry : rentalItems.entrySet()) {
 
             RentalItem item = entry.getKey();
+            
             int quantity = entry.getValue();
 
             double total = item.getRentalPrice() * quantity;
@@ -120,13 +133,54 @@ public class RentalTransaction {
 
         System.out.println("---------------------------------");
 
-        System.out.printf("Subtotal: RM%.2f%n", calculateSubtotal());
+        System.out.printf("Subtotal: RM%.2f%n",
+                calculateSubtotal());
+
+        // Display eligible promotions
+        promotionManager.displayEligiblePromotions(this);
+
+        if (bestPromotion != null) {
+            System.out.println(
+                    "Selected Promotion: "
+                    + bestPromotion.getPromotionCode()
+                    + " - "
+                    + bestPromotion.getPromotionName());
+
+            System.out.printf("Discount: RM%.2f%n", discount);
+
+        } else {
+            System.out.println("Selected Promotion: None");
+            System.out.printf("Discount: RM%.2f%n", 0.00);
+        }
 
         System.out.printf("Service Charge (10%%): RM%.2f%n",
                 calculateServiceCharge());
 
-        System.out.printf("Final Total: RM%.2f%n", calculateTotal());
+        System.out.printf("Final Payable: RM%.2f%n",
+                calculateFinalPayable(discount));
 
         System.out.println("=================================");
     }
+
+    // Get total quantity of equipment items
+    public int getEquipmentQuantity() {
+
+        int totalEquipment = 0;
+
+        ArrayList<RentalItem> items = new ArrayList<>(rentalItems.keySet());
+
+        int i = 0;
+        while (i < items.size()) {
+
+            RentalItem item = items.get(i);
+
+            if (item.getCategory().equalsIgnoreCase("Equipment"))
+                totalEquipment += rentalItems.get(item);
+            i++;
+        }
+        return totalEquipment;
+    }
+
 }
+
+

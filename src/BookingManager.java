@@ -261,7 +261,7 @@ public class BookingManager {
     }
 
 	// Find booking using Booking ID
-	// If booking is cancelled or not exist it will return null
+	// If booking is cancelled or not exist it will return null else return bookingID
 	public Booking findBooking(String bookingID) {
 
 		int i = 0;

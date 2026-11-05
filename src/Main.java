@@ -11,6 +11,7 @@ public class Main {
     static ArrayList<Facility> facilities = new ArrayList<>();
     static RentalManager rentalManager = new RentalManager();
     static ArrayList<RentalTransaction> transactions = new ArrayList<>();
+    static PromotionManager promotionManager = new PromotionManager();
 
     static int nextTransactionID = 1;
     static int nextBookingID = 1;
@@ -148,11 +149,36 @@ public class Main {
         String name = input.nextLine();
         String contact = InputChecker.getValidContact(input);
         Customer customer = new Customer(name, contact);
+        Booking selectedBooking = null;
+
+        while (true) {
+            System.out.println("\n1. Existing Facility Booking");
+            System.out.println("2. Walk-in Customer");
+            System.out.print("Select transaction type: ");
+
+            String bookingChoice = input.nextLine();
+
+            if (bookingChoice.equals("1")) {
+
+                System.out.print("Enter Booking ID: ");
+                String bookingID = input.nextLine();
+
+                selectedBooking = bookingManager.findBooking(bookingID);
+                if (selectedBooking == null) {
+                    MainUtils.displayRed("Booking ID not found or booking is cancelled.");
+                    continue;
+                }
+                break;
+            }
+            else if (bookingChoice.equals("2"))
+                break;
+            else
+                MainUtils.displayError("Please enter 1 or 2.");
+        }
 
         String transactionID = String.format("T%03d", nextTransactionID);
 
-        RentalTransaction transaction =
-                new RentalTransaction(transactionID, customer);
+        RentalTransaction transaction = new RentalTransaction(transactionID, customer, selectedBooking);
 
         rentalManager.displayCatalogue();
 
@@ -230,7 +256,7 @@ public class Main {
         transactions.add(transaction);
         nextTransactionID++;
 
-        transaction.displayTransaction();
+        transaction.displayTransaction(promotionManager);
     }
 }
 
