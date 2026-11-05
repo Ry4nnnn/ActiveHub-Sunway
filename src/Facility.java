@@ -1,5 +1,3 @@
-package ActiveHubSportCentre.src;
-
 public class Facility {
 
     private String facilityCode;
