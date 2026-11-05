@@ -5,7 +5,6 @@ public class RentalTransaction {
 
     private String transactionID;
     private Customer customer;
-
     private Map<RentalItem, Integer> rentalItems;
 
     // Constructor
@@ -40,6 +39,34 @@ public class RentalTransaction {
         );
 
         System.out.println("Item added successfully!");
+    }
+
+    // Check whether an item exists in the transaction
+    //returns true if item exist in rentalItem
+    public boolean containsItem(RentalItem item) {
+        return rentalItems.containsKey(item);
+    }
+
+    // Update existing rental item quantity
+    public void updateItemQuantity(RentalItem item, int quantity) {
+
+        if (!rentalItems.containsKey(item)) {
+            System.out.println("Item not found in transaction!");
+            return;
+        }
+
+        if (quantity < 0) {
+            System.out.println("Invalid quantity!");
+            return;
+        }
+
+        if (quantity == 0) {
+            rentalItems.remove(item);
+            System.out.println("Item removed successfully!");
+        } else {
+            rentalItems.put(item, quantity);
+            System.out.println("Quantity updated successfully!");
+        }
     }
 
     // Calculate subtotal
