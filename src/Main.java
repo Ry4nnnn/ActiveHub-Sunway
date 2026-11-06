@@ -10,11 +10,13 @@ public class Main {
     static BookingManager bookingManager = new BookingManager();
     static ArrayList<Facility> facilities = new ArrayList<>();
     static RentalManager rentalManager = new RentalManager();
-    static ArrayList<RentalTransaction> transactions = new ArrayList<>();
+    static ArrayList<Payment> payments = new ArrayList<>();
+    static TransactionManager transactionManager = new TransactionManager();
     static PromotionManager promotionManager = new PromotionManager();
 
     static int nextTransactionID = 1;
     static int nextBookingID = 1;
+    static int nextPaymentID = 1;
 
     public static void main(String[] args) {
 
@@ -24,11 +26,13 @@ public class Main {
         facilities.add(new Facility("A03", "Basketball Court 1", 40.00));
         facilities.add(new Facility("A04", "Futsal Court 1", 35.00));
         
-        //gets booking details from the txt file
+        //gets booking and transaction details from the txt file
         bookingManager.loadBookings(facilities);
+        transactionManager.loadTransactions(bookingManager, rentalManager);
         
         //set the next booking id +1
         nextBookingID = bookingManager.getBookingCount() + 1;
+        nextTransactionID = transactionManager.getTransactionCount() + 1;
 
         int choice = 99;
         while (choice != 0) {
@@ -61,11 +65,11 @@ public class Main {
                         break;
 
                     case 5:
-                        System.out.println("Payment - Coming soon.");
+                        makePayment();
                         break;
 
                     case 6:
-                        System.out.println("Daily Report - Coming soon.");
+                        Report.displayDailyReport(bookingManager, transactionManager);
                         break;
 
                     case 7:
@@ -253,10 +257,176 @@ public class Main {
             return;
         }
 
-        transactions.add(transaction);
+        transactionManager.addTransaction(transaction);
+
+        transactionManager.saveTransactions();
+
         nextTransactionID++;
 
         transaction.displayTransaction(promotionManager);
     }
+
+    // Make payment
+    public static void makePayment() {
+
+        System.out.println("\n===== MAKE PAYMENT =====");
+        System.out.println("1. Facility Booking");
+        System.out.println("2. Rental Transaction");
+        System.out.println("0. Exit");
+
+        System.out.print("Select payment type: ");
+        String choice = input.nextLine();
+
+        if (choice.equals("0"))
+            return;
+        else if (choice.equals("1"))
+            payBooking();
+        else if (choice.equals("2"))
+            payRentalTransaction();
+        else
+            MainUtils.displayError("Please enter 0, 1, or 2.");
+    }
+
+    // Select payment method
+    public static Payment selectPaymentMethod(
+            String referenceID, double amount) {
+
+        while (true) {
+
+            System.out.println("\n===== PAYMENT METHOD =====");
+            System.out.println("1. Cash");
+            System.out.println("2. Credit/Debit Card");
+            System.out.println("3. E-Wallet");
+            System.out.println("0. Cancel Payment");
+
+            System.out.print("Select payment method: ");
+            String choice = input.nextLine();
+
+            if (choice.equals("0")) {
+                MainUtils.displayRed("Payment cancelled.");
+                return null;
+            }
+
+            String paymentID = String.format("P%03d", nextPaymentID);
+
+            if (choice.equals("1"))
+                return new PaymentCash(paymentID, referenceID, amount);
+            else if (choice.equals("2"))
+                return new PaymentCard(paymentID, referenceID, amount);
+            else if (choice.equals("3"))
+                return new PaymentEWallet(paymentID, referenceID, amount);
+            else
+                MainUtils.displayError("Please enter 0, 1, 2, or 3.");
+        }
+    }
+
+    // Pay for a facility booking
+    public static void payBooking() {
+
+        System.out.println("\n===== BOOKING PAYMENT =====");
+        System.out.print("Enter Booking ID: ");
+
+        String bookingID = input.nextLine();
+        Booking booking = bookingManager.findBooking(bookingID);
+
+        // Check whether booking exists
+        if (booking == null) {
+            MainUtils.displayRed("Booking not found or booking is cancelled.");
+            return;
+        }
+
+        // Check whether already paid
+        if (booking.isPaid()) {
+            MainUtils.displayRed("This booking has already been paid.");
+            return;
+        }
+
+        // Calculate booking amount
+        double amount = booking.calculateBookingPrice();
+
+        System.out.printf("Amount to pay: RM%.2f%n", amount);
+
+        // Let customer select payment method
+        Payment payment = selectPaymentMethod(booking.getBookingID(), amount);
+
+        // Customer cancelled payment
+        if (payment == null)
+            return;
+
+        // Process payment
+        payment.processPayment();
+        // Store payment record
+        payments.add(payment);
+        // Mark booking as paid
+        booking.makePayment();
+        // Increase payment ID
+        nextPaymentID++;
+
+        System.out.println("Payment successful!");
+    }
+
+    // Pay for a rental transaction
+    public static void payRentalTransaction() {
+
+        System.out.println("\n===== RENTAL TRANSACTION PAYMENT =====");
+        System.out.print("Enter Transaction ID: ");
+        String transactionID = input.nextLine();
+        RentalTransaction transaction = transactionManager.findTransaction(transactionID);
+
+        // Check whether transaction exists
+        if (transaction == null) {
+            MainUtils.displayRed("Transaction not found.");
+            return;
+        }
+
+        // Check whether already paid
+        if (transaction.isPaid()) {
+            MainUtils.displayRed(
+                    "This transaction has already been paid.");
+            return;
+        }
+
+        // Get the best promotion
+        Promotion bestPromotion = promotionManager.getBestPromotion(transaction);
+
+        double discount = 0;
+
+        if (bestPromotion != null) {
+            discount = bestPromotion.calculateDiscount(transaction);
+        }
+
+        // Calculate final amount
+        double amount = transaction.calculateFinalPayable(discount);
+
+        System.out.printf("Final amount to pay: RM%.2f%n", amount);
+
+        // Select payment method
+        Payment payment = selectPaymentMethod(transaction.getTransactionID(), amount);
+
+        // Customer cancelled payment
+        if (payment == null)
+            return;
+
+        // Process payment
+        payment.processPayment();
+
+        // Store payment
+        payments.add(payment);
+
+        // Mark transaction as paid
+        transaction.makePayment();
+
+        transactionManager.saveTransactions();
+
+        if (transaction.getBooking() != null) {
+            transaction.getBooking().makePayment();
+        }
+
+        // Increase payment ID
+        nextPaymentID++;
+
+        System.out.println("Payment successful!");
+    }
+    
 }
 

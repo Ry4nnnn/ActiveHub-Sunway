@@ -6,9 +6,7 @@ public class RentalItem {
     private double rentalPrice;
 
     // Constructor
-    public RentalItem(String itemCode, String itemName,
-                      String category, double rentalPrice) {
-
+    public RentalItem(String itemCode, String itemName, String category, double rentalPrice) {
         this.itemCode = itemCode;
         this.itemName = itemName;
         this.category = category;
@@ -34,7 +32,6 @@ public class RentalItem {
 
     // Display rental item
     public void displayItem() {
-        System.out.printf("%-8s %-25s %-15s RM%.2f%n",
-                itemCode, itemName, category, rentalPrice);
+        System.out.printf("%-8s %-25s %-15s RM%.2f%n", itemCode, itemName, category, rentalPrice);
     }
 }

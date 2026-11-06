@@ -15,6 +15,7 @@ public class Booking {
     private int durationHours;
     private String packageType;
     private boolean cancelled;
+    private boolean paid;
 
     // Constructor
     public Booking(String bookingID, Customer customer,
@@ -31,25 +32,64 @@ public class Booking {
         this.durationHours = durationHours;
         this.packageType = packageType;
         this.cancelled = false;
+        this.paid = false;
     }
 
     // Getters
-    public String getBookingID() { return bookingID; }
-    public Customer getCustomer() { return customer; }
-    public Facility getFacility() { return facility; }
-    public LocalDate getBookingDate() { return bookingDate; }
-    public LocalTime getBookingTime() { return bookingTime; }
-    public int getParticipants() { return participants; }
-    public int getDurationHours() { return durationHours; }
-    public String getPackageType() { return packageType; }
-    public boolean isCancelled() { return cancelled; }
+    public String getBookingID() {
+        return bookingID;
+    }
+
+    public Customer getCustomer() {
+        return customer;
+    }
+
+    public Facility getFacility() {
+        return facility;
+    }
+
+    public LocalDate getBookingDate() {
+        return bookingDate;
+    }
+
+    public LocalTime getBookingTime() {
+        return bookingTime;
+    }
+
+    public int getParticipants() {
+        return participants;
+    }
+
+    public int getDurationHours() {
+        return durationHours;
+    }
+
+    public String getPackageType() {
+        return packageType;
+    }
+    
+    public boolean isCancelled() {
+        return cancelled;
+    
+    }
+    
+    public void cancelBooking() {
+        cancelled = true;
+    }
+
+    public boolean isPaid() {
+        return paid;
+    }
+
+    public void makePayment() {
+        paid = true;
+    }
 
     // Set package price
     public double calculatePackagePrice() {
 
         if (packageType.equalsIgnoreCase("Normal")) {
             return 14.00;
-
         } else if (packageType.equalsIgnoreCase("Premium")) {
             return 28.00;
         }
@@ -59,14 +99,9 @@ public class Booking {
     // Calculate total booking price
     public double calculateBookingPrice() {
 
-        double courtPrice =
-                facility.getRentalPrice() * durationHours;
+        double courtPrice = facility.getRentalPrice() * durationHours;
 
         return courtPrice + calculatePackagePrice();
-    }
-
-    public void cancelBooking() {
-        cancelled = true;
     }
 
     // Display booking details
@@ -90,10 +125,16 @@ public class Booking {
         System.out.printf("Total Booking Price: RM%.2f%n",
                 calculateBookingPrice());
 
-        if (cancelled) {
+        if (cancelled)
             System.out.println("Status: Cancelled");
-        } else {
+        else
+        {
             System.out.println("Status: Active");
+
+            if (paid)
+                System.out.println("Payment: PAID");
+            else
+                System.out.println("Payment: UNPAID");
         }
         System.out.println("---------------------------\n");
     }

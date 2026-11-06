@@ -7,6 +7,7 @@ public class RentalTransaction {
     private String transactionID;
     private Customer customer;
     private Booking booking;
+    private boolean paid;
 
     private Map<RentalItem, Integer> rentalItems;
 
@@ -16,6 +17,7 @@ public class RentalTransaction {
         this.transactionID = transactionID;
         this.customer = customer;
         this.booking = booking;
+        this.paid = false;
 
         rentalItems = new LinkedHashMap<>();
     }
@@ -31,6 +33,28 @@ public class RentalTransaction {
 
     public Booking getBooking() {
         return booking;
+    }
+
+    public boolean isPaid() {
+        return paid;
+    }
+
+    public void makePayment() {
+        paid = true;
+    }
+    
+    public Map<RentalItem, Integer> getRentalItems() {
+        return rentalItems;
+    }
+
+    // Calculate facility booking charge
+    public double calculateFacilityCharge() {
+
+        if (booking == null) {
+            return 0.00;
+        }
+
+        return booking.calculateBookingPrice();
     }
 
     // Add rental item
@@ -89,19 +113,19 @@ public class RentalTransaction {
         return subtotal;
     }
 
-    // Calculate 10% service charge
-    public double calculateServiceCharge() {
-        return calculateSubtotal() * 0.10;
+    // Calculate subtotal + facility charge
+    public double calculateCombinedSubtotal() {
+        return calculateFacilityCharge() + calculateSubtotal();
     }
 
-    // Calculate total
-    public double calculateTotal() {
-        return calculateSubtotal() + calculateServiceCharge();
+    // Calculate 10% service charge
+    public double calculateServiceCharge() {
+        return calculateCombinedSubtotal() * 0.10;
     }
 
     // Calculate final payable amount
     public double calculateFinalPayable(double discount) {
-        return calculateSubtotal() - discount + calculateServiceCharge();
+        return calculateCombinedSubtotal() - discount + calculateServiceCharge();
     }
 
     // Display transaction
@@ -122,7 +146,7 @@ public class RentalTransaction {
         for (Map.Entry<RentalItem, Integer> entry : rentalItems.entrySet()) {
 
             RentalItem item = entry.getKey();
-            
+
             int quantity = entry.getValue();
 
             double total = item.getRentalPrice() * quantity;
@@ -132,20 +156,18 @@ public class RentalTransaction {
         }
 
         System.out.println("---------------------------------");
-
-        System.out.printf("Subtotal: RM%.2f%n",
-                calculateSubtotal());
+        System.out.printf("Rental Items Subtotal: RM%.2f%n", calculateSubtotal());
+        System.out.printf("Facility Charge: RM%.2f%n", calculateFacilityCharge());
+        System.out.printf("Combined Subtotal: RM%.2f%n", calculateCombinedSubtotal());
 
         // Display eligible promotions
         promotionManager.displayEligiblePromotions(this);
 
         if (bestPromotion != null) {
-            System.out.println(
-                    "Selected Promotion: "
-                    + bestPromotion.getPromotionCode()
-                    + " - "
-                    + bestPromotion.getPromotionName());
-
+            System.out.println("Selected Promotion: "
+                + bestPromotion.getPromotionCode()
+                + " - "
+                + bestPromotion.getPromotionName());
             System.out.printf("Discount: RM%.2f%n", discount);
 
         } else {
@@ -155,10 +177,8 @@ public class RentalTransaction {
 
         System.out.printf("Service Charge (10%%): RM%.2f%n",
                 calculateServiceCharge());
-
         System.out.printf("Final Payable: RM%.2f%n",
                 calculateFinalPayable(discount));
-
         System.out.println("=================================");
     }
 

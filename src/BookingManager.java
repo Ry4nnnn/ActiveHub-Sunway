@@ -90,6 +90,47 @@ public class BookingManager {
         }
     }
 
+	// Get number of paid bookings
+	public int getPaidBookingCount() {
+
+		int count = 0;
+		int i = 0;
+
+		while (i < bookings.size()) {
+
+			Booking booking = bookings.get(i);
+
+			if (booking.isPaid()) {
+				count++;
+			}
+
+			i++;
+		}
+
+		return count;
+	}
+
+
+	// Calculate total facility booking revenue
+	public double calculateTotalBookingRevenue() {
+
+		double totalRevenue = 0;
+		int i = 0;
+
+		while (i < bookings.size()) {
+
+			Booking booking = bookings.get(i);
+
+			if (booking.isPaid()) {
+				totalRevenue += booking.calculateBookingPrice();
+			}
+
+			i++;
+		}
+
+		return totalRevenue;
+	}
+
     // Cancel an existing booking
     public void cancelBooking(String bookingID) {
 
@@ -272,6 +313,23 @@ public class BookingManager {
 
 			if (booking.getBookingID().equalsIgnoreCase(bookingID) && !booking.isCancelled())
 				return booking;
+			i++;
+		}
+		return null;
+	}
+
+	// Find booking by ID, including cancelled bookings
+	public Booking findBookingByID(String bookingID) {
+
+		int i = 0;
+
+		while (i < bookings.size()) {
+
+			Booking booking = bookings.get(i);
+
+			if (booking.getBookingID().equalsIgnoreCase(bookingID)) {
+				return booking;
+			}
 			i++;
 		}
 		return null;

@@ -9,8 +9,7 @@ public class PromotionA extends Promotion {
 
     // Calculate Promotion A discount
     @Override
-    public double calculateDiscount(
-            RentalTransaction transaction) {
+    public double calculateDiscount(RentalTransaction transaction) {
 
         Booking booking = transaction.getBooking();
 
@@ -19,20 +18,17 @@ public class PromotionA extends Promotion {
             return 0;
         }
 
-        boolean isWeekday =
-                booking.getBookingDate().getDayOfWeek().getValue() >= 1
-                && booking.getBookingDate().getDayOfWeek().getValue() <= 5;
+        boolean isWeekday = booking.getBookingDate().getDayOfWeek().getValue() >= 1
+            && booking.getBookingDate().getDayOfWeek().getValue() <= 5;
 
         LocalTime bookingTime = booking.getBookingTime();
 
-        boolean isValidTime =
-                !bookingTime.isBefore(LocalTime.of(9, 0))
-                && bookingTime.isBefore(LocalTime.of(16, 0));
+        boolean isValidTime = !bookingTime.isBefore(LocalTime.of(9, 0))
+			&& bookingTime.isBefore(LocalTime.of(16, 0));
 
         if (isWeekday && isValidTime) {
             return booking.calculateBookingPrice() * 0.15;
         }
-
         return 0;
     }
 }
