@@ -26,8 +26,7 @@ public class Report {
 
 
         // Grand total
-        double totalRevenue =
-                bookingRevenue + rentalRevenue;
+        double totalRevenue = bookingRevenue + rentalRevenue;
 
 
         System.out.println("\n----- FACILITY BOOKINGS -----");
